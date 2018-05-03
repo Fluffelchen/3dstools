@@ -11,8 +11,8 @@ foreach ($url in ($content -split "`n")) {
 }
 $ErrorActionPreference = "Continue"
 
-$json = Invoke-WebRequest -Uri $urls["json_enc"] | ConvertFrom-Json
-Invoke-WebRequest -Uri $urls["seeddb"] -OutFile "seeddb.bin"
+$json = Invoke-WebRequest -Uri "$($urls["keys"])/json_enc" | ConvertFrom-Json
+Invoke-WebRequest -Uri "$($urls["keys"])/seeddb" -OutFile "seeddb.bin"
 $seeddb_date = (Get-Date).ToString()
 
 function GetGM9NameForCIA {
@@ -135,7 +135,7 @@ function DownloadAndDecryptCIA {
     Remove-Item "$TitleID" -Recurse
 
     if (!(Test-Path "cdn/cetk")) {
-        Invoke-WebRequest -Uri "$($urls["tickets"])$($TitleID.ToLower())" -OutFile "cdn/cetk"
+        Invoke-WebRequest -Uri "$($urls["keys"])/ticket/$($TitleID.ToLower())" -OutFile "cdn/cetk"
     }
 
     $name = GetGM9NameForCIA -TitleID $TitleID
@@ -239,7 +239,7 @@ if ($option -eq 1) {
         Start-Process -FilePath ".\ctrtool.exe" -ArgumentList "-x `"$cia`" --contents=`"$dest`"" -Wait
     }
 } elseIf ($option -eq 7) {
-    Invoke-WebRequest -Uri $urls["seeddb"] -OutFile "seeddb.bin"
+    Invoke-WebRequest -Uri "$($urls["keys"])/seeddb" -OutFile "seeddb.bin"
     $seeddb_date = (Get-Date).ToString()
 } elseIf ($option -eq 8) {
     break
