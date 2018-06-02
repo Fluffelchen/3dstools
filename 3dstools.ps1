@@ -137,7 +137,7 @@ function DownloadAndDecryptCIA {
 while ($true) {
 Clear-Host
 Write-Host @"
-New 3DSToolkit
+3dstools
 SeedDB updated: $seeddb_date
 (1) Convert CIA
 (2) Decrypt CIA
