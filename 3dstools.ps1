@@ -108,11 +108,9 @@ function DownloadAndDecryptCIA {
     $TitleID = $TitleID.ToUpper()
 
     if ($Version -eq "") {
-        $process = Start-Process -FilePath ".\nustool.exe" -ArgumentList "-m -p $TitleID" -Wait -PassThru
-        $process.WaitForExit()
+        Start-Process -FilePath ".\nustool.exe" -ArgumentList "-m -p $TitleID" -Wait
     } else {
-        $process = Start-Process -FilePath ".\nustool.exe" -ArgumentList "-m -p -V $Version $TitleID" -Wait -PassThru
-        $process.WaitForExit()
+        Start-Process -FilePath ".\nustool.exe" -ArgumentList "-m -p -V $Version $TitleID" -Wait
     }
 
     md "cdn"
@@ -129,7 +127,7 @@ function DownloadAndDecryptCIA {
     }
 
     $name = GetGM9NameForCIA -TitleID $TitleID
-    Start-Process -FilePath ".\make_cdn_cia.exe" -ArgumentList "cdn `"$name`"" -NoNewWindow -Wait
+    Start-Process -FilePath ".\make_cdn_cia.exe" -ArgumentList "cdn `"$name`"" -Wait
     Remove-Item "cdn" -Recurse
     DecryptCIA -Path $name
 }
