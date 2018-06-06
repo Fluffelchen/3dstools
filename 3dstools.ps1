@@ -84,10 +84,16 @@ function DecryptCIA {
             $name = [System.IO.Path]::GetFileNameWithoutExtension($name)
 
             if ($name -eq $noext) {
-                Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$noext ($id) (Decrypted).cia`" -i `"$file`:0:0`" -ignoresign -target p" -Wait
+                $dlc = ""
+
+                if ($name.Contains("DLC") -or $name.Contains("0004008c") -or $name.Contains("0004008C")) {
+                    $dlc = " -dlc"
+                }
+
+                Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$noext ($id) (Decrypted).cia`" -i `"$file`:0:0`" -ignoresign -target p$dlc" -Wait
 
                 if (!(Test-Path "$noext ($id) (Decrypted).cia")) {
-                    Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$noext ($id) (Decrypted).cia`" -major 0 -i `"$file`:0:0`" -ignoresign -target p" -Wait
+                    Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$noext ($id) (Decrypted).cia`" -major 0 -i `"$file`:0:0`" -ignoresign -target p$dlc" -Wait
                 }
             }
 
@@ -203,11 +209,16 @@ if ($option -eq 1) {
 } elseif ($option -eq 5) {
     foreach ($ncch In (Get-ChildItem -Filter "*.ncch" -Recurse)) {
         $name = [System.IO.Path]::GetFileNameWithoutExtension($ncch)
+        $dlc = ""
 
-        Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$name.cia`" -i `"$ncch`:0:0`" -ignoresign -target p" -Wait
+        if ($name.Contains("DLC") -or $name.Contains("0004008c") -or $name.Contains("0004008C")) {
+            $dlc = " -dlc"
+        }
+
+        Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$name.cia`" -i `"$ncch`:0:0`" -ignoresign -target p$dlc" -Wait
 
         if (!(Test-Path "$name.cia")) {
-            Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$name.cia`" -major 0 -i `"$ncch`:0:0`" -ignoresign -target p" -Wait
+            Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$name.cia`" -major 0 -i `"$ncch`:0:0`" -ignoresign -target p$dlc" -Wait
         }
     }
 } elseif ($option -eq 6) {
