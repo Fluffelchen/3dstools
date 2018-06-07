@@ -35,12 +35,11 @@ function GetGM9NameForCIA {
                 $name += $region
                 $name += ")"
             }
-            $name += ".cia"
             return $name -replace '[<>:"/\\|?*]', ''
         }
     }
 
-    return "$TitleID.cia"
+    return "$TitleID"
 }
 
 function ConvertCIA {
@@ -63,42 +62,54 @@ function ConvertCIA {
 function DecryptCIA {
     param([string]$Path)
 
-    $process = Start-Process -FilePath ".\decrypt.exe" -ArgumentList "`"$Path`"" -PassThru
-    Start-Sleep -Seconds 1
-    [System.Windows.Forms.SendKeys]::SendWait('~')
+    $si = [System.Diagnostics.ProcessStartInfo]::new()
+    $si.FileName = [Environment]::CurrentDirectory + "\decrypt.exe"
+    $si.Arguments = "`"$Path`""
+    $si.UseShellExecute = $false
+    $si.CreateNoWindow = $true
+    $process = [System.Diagnostics.Process]::Start($si)
+    $process.StandardInput.WriteLine()
     $process.WaitForExit()
-    $files = Get-ChildItem -Exclude "*.exe","*.dll","*.cia"
+    $files = Get-ChildItem -Filter "*.ncch"
+    $dlc = ""
 
     foreach ($file in $files) {
         $info = [System.IO.FileInfo]::new($file)
-
-        if ($info.Name.Contains(".ncch")) {
-            $data = [System.IO.File]::ReadAllBytes($file)
-            $data[0x188 + 3] = 0
-            $data[0x188 + 7] = 4
-            [System.IO.File]::WriteAllBytes($file, $data)
-
-            $name = [System.IO.Path]::GetFileNameWithoutExtension($info.Name)
-            $noext = [System.IO.Path]::GetFileNameWithoutExtension($Path)
-            $id = [System.IO.FileInfo]::new($name).Extension.Replace(".", "")
-            $name = [System.IO.Path]::GetFileNameWithoutExtension($name)
-
-            if ($name -eq $noext) {
-                $dlc = ""
-
-                if ($name.Contains("DLC") -or $name.Contains("0004008c") -or $name.Contains("0004008C")) {
-                    $dlc = " -dlc"
-                }
-
-                Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$noext ($id) (Decrypted).cia`" -i `"$file`:0:0`" -ignoresign -target p$dlc" -Wait
-
-                if (!(Test-Path "$noext ($id) (Decrypted).cia")) {
-                    Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$noext ($id) (Decrypted).cia`" -major 0 -i `"$file`:0:0`" -ignoresign -target p$dlc" -Wait
-                }
-            }
-
-            Remove-Item "$file"
+        $data = [System.IO.File]::ReadAllBytes($file)
+        $data[0x188 + 3] = 0
+        $data[0x188 + 7] = 4
+        [System.IO.File]::WriteAllBytes($file, $data)
+        if ($info.Name.Contains("DLC") -or $info.Name.Contains("0004008c") -or $info.Name.Contains("0004008C")) {
+            $dlc = " -dlc"
         }
+    }
+
+    $files_str = ""
+
+    foreach ($file in $files) {
+        $files_str += "-i $file "
+    }
+
+    $noext = [System.IO.Path]::GetFileNameWithoutExtension($Path)
+    $si = [System.Diagnostics.ProcessStartInfo]::new()
+    $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
+    $si.Arguments = "-f cia -o `"$noext (Decrypted).cia`" $files_str-ignoresign -target p$dlc"
+    $si.UseShellExecute = $false
+    $si.CreateNoWindow = $true
+    [System.Diagnostics.Process]::Start($si).WaitForExit()
+
+    if (!(Test-Path "$noext (Decrypted).cia")) {
+        $noext = [System.IO.Path]::GetFileNameWithoutExtension($Path)
+        $si = [System.Diagnostics.ProcessStartInfo]::new()
+        $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
+        $si.Arguments = "-f cia -o `"$noext (Decrypted).cia`" $files_str-ignoresign -target p$dlc"
+        $si.UseShellExecute = $false
+        $si.CreateNoWindow = $true
+        [System.Diagnostics.Process]::Start($si).WaitForExit()
+    }
+
+    foreach ($file in $files) {
+        Remove-Item $file
     }
 }
 
