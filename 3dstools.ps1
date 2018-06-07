@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Windows.Forms
 
-$keys_url = Read-Host "Keys URL"
+$keys_url = "http://3ds.titlekeys.gq"
 $json = Invoke-WebRequest -Uri "$keys_url/json_enc" | ConvertFrom-Json
 Invoke-WebRequest -Uri "$keys_url/seeddb" -OutFile "seeddb.bin"
 $seeddb_date = (Get-Date).ToString()
@@ -119,9 +119,19 @@ function DownloadAndDecryptCIA {
     $TitleID = $TitleID.ToUpper()
 
     if ($Version -eq "") {
-        Start-Process -FilePath ".\nustool.exe" -ArgumentList "-m -p $TitleID" -Wait
+        $si = [System.Diagnostics.ProcessStartInfo]::new()
+        $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
+        $si.Arguments = "-m $TitleID"
+        $si.UseShellExecute = $false
+        $si.CreateNoWindow = $true
+        [System.Diagnostics.Process]::Start($si).WaitForExit()
     } else {
-        Start-Process -FilePath ".\nustool.exe" -ArgumentList "-m -p -V $Version $TitleID" -Wait
+        $si = [System.Diagnostics.ProcessStartInfo]::new()
+        $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
+        $si.Arguments = "-m -V $Version $TitleID"
+        $si.UseShellExecute = $false
+        $si.CreateNoWindow = $true
+        [System.Diagnostics.Process]::Start($si).WaitForExit()
     }
 
     md "cdn"
@@ -138,7 +148,12 @@ function DownloadAndDecryptCIA {
     }
 
     $name = GetGM9NameForCIA -TitleID $TitleID
-    Start-Process -FilePath ".\make_cdn_cia.exe" -ArgumentList "cdn `"$name`"" -Wait
+    $si = [System.Diagnostics.ProcessStartInfo]::new()
+    $si.FileName = [Environment]::CurrentDirectory + "\make_cdn_cia.exe"
+    $si.Arguments = "cdn `"$name`".cia"
+    $si.UseShellExecute = $false
+    $si.CreateNoWindow = $true
+    [System.Diagnostics.Process]::Start($si).WaitForExit()
     Remove-Item "cdn" -Recurse
     DecryptCIA -Path $name
 }
@@ -237,7 +252,7 @@ if ($option -eq 1) {
         $dest = Split-Path $cia -Leaf
         Start-Process -FilePath ".\ctrtool.exe" -ArgumentList "-x `"$cia`" --contents=`"$dest`"" -Wait
     }
-} elseIf ($option -eq 7) {
+} elseif ($option -eq 7) {
     Invoke-WebRequest -Uri "$keys_url/seeddb" -OutFile "seeddb.bin"
     $seeddb_date = (Get-Date).ToString()
 } elseIf ($option -eq 8) {
