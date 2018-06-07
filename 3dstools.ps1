@@ -2,8 +2,6 @@ Add-Type -AssemblyName System.Windows.Forms
 
 $keys_url = "http://3ds.titlekeys.gq"
 $json = Invoke-WebRequest -Uri "$keys_url/json_enc" | ConvertFrom-Json
-Invoke-WebRequest -Uri "$keys_url/seeddb" -OutFile "seeddb.bin"
-$seeddb_date = (Get-Date).ToString()
 
 function GetGM9NameForCIA {
     param([string]$TitleID)
@@ -120,6 +118,7 @@ function DecryptCIA {
 function DownloadAndDecryptCIA {
     param([string]$TitleID, [string]$Version)
 
+    Write-Host "Downloading..."
     $TitleID = $TitleID.ToUpper()
 
     if ($Version -eq "") {
@@ -140,7 +139,7 @@ function DownloadAndDecryptCIA {
         $process.WaitForExit()
     }
 
-    md "cdn"
+    md "cdn" | Out-Null
 
     foreach ($file In (Get-ChildItem -Path "$TitleID" -Recurse -File)) {
         $dir = Get-ChildItem -Path "$TitleID" -Directory
@@ -162,6 +161,7 @@ function DownloadAndDecryptCIA {
     $process = [System.Diagnostics.Process]::Start($si)
     $process.WaitForExit()
     Remove-Item "cdn" -Recurse
+    Write-Host "Decrypting..."
     DecryptCIA -Path "$name.cia"
 }
 
@@ -169,15 +169,13 @@ while ($true) {
 Clear-Host
 Write-Host @"
 3dstools
-SeedDB updated: $seeddb_date
 (1) Convert CIA
 (2) Decrypt CIA
 (3) Download & Decrypt CIA
 (4) Download & Decrypt CIA list
 (5) Convert all NCCHs to CIAs
 (6) Extract all CIAs contents
-(7) Update SeedDB
-(8) Exit
+(7) Exit
 "@
 $option = [int](Read-Host "Select a option")
 if ($option -eq 1) {
@@ -230,7 +228,8 @@ if ($option -eq 1) {
 
     if ($ofd.FileName -ne "") {
         foreach ($title in ((Get-Content -Path $ofd.FileName) -split '`n')) {
-            if ($title.Length -eq 16) {
+            Write-Host "Title: $($title.ToUpper())"
+            if ($title.Split(' ').Length -eq 1) {
                 DownloadAndDecryptCIA -TitleID $title -Version ""
             } else {
                 $TitleID = $title.Substring(0, $title.LastIndexOf(' '))
@@ -260,9 +259,6 @@ if ($option -eq 1) {
         Start-Process -FilePath ".\ctrtool.exe" -ArgumentList "-x `"$cia`" --contents=`"$dest`"" -Wait
     }
 } elseif ($option -eq 7) {
-    Invoke-WebRequest -Uri "$keys_url/seeddb" -OutFile "seeddb.bin"
-    $seeddb_date = (Get-Date).ToString()
-} elseIf ($option -eq 8) {
     break
 }
 }
