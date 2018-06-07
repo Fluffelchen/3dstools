@@ -67,6 +67,7 @@ function DecryptCIA {
     $si.Arguments = "`"$Path`""
     $si.UseShellExecute = $false
     $si.CreateNoWindow = $true
+    $si.RedirectStandardInput = $true
     $process = [System.Diagnostics.Process]::Start($si)
     $process.StandardInput.WriteLine()
     $process.WaitForExit()
@@ -85,9 +86,11 @@ function DecryptCIA {
     }
 
     $files_str = ""
+    $i = 0
 
     foreach ($file in $files) {
-        $files_str += "-i $file "
+        $files_str += "-i `"$file`:$i`:$i`" "
+        ++$i
     }
 
     $noext = [System.IO.Path]::GetFileNameWithoutExtension($Path)
@@ -96,16 +99,17 @@ function DecryptCIA {
     $si.Arguments = "-f cia -o `"$noext (Decrypted).cia`" $files_str-ignoresign -target p$dlc"
     $si.UseShellExecute = $false
     $si.CreateNoWindow = $true
-    [System.Diagnostics.Process]::Start($si).WaitForExit()
+    $process = [System.Diagnostics.Process]::Start($si)
+    $process.WaitForExit()
 
     if (!(Test-Path "$noext (Decrypted).cia")) {
-        $noext = [System.IO.Path]::GetFileNameWithoutExtension($Path)
         $si = [System.Diagnostics.ProcessStartInfo]::new()
         $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
         $si.Arguments = "-f cia -o `"$noext (Decrypted).cia`" $files_str-ignoresign -target p$dlc"
         $si.UseShellExecute = $false
         $si.CreateNoWindow = $true
-        [System.Diagnostics.Process]::Start($si).WaitForExit()
+        $process = [System.Diagnostics.Process]::Start($si)
+        $process.WaitForExit()
     }
 
     foreach ($file in $files) {
@@ -124,14 +128,16 @@ function DownloadAndDecryptCIA {
         $si.Arguments = "-m $TitleID"
         $si.UseShellExecute = $false
         $si.CreateNoWindow = $true
-        [System.Diagnostics.Process]::Start($si).WaitForExit()
+        $process = [System.Diagnostics.Process]::Start($si)
+        $process.WaitForExit()
     } else {
         $si = [System.Diagnostics.ProcessStartInfo]::new()
         $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
         $si.Arguments = "-m -V $Version $TitleID"
         $si.UseShellExecute = $false
         $si.CreateNoWindow = $true
-        [System.Diagnostics.Process]::Start($si).WaitForExit()
+        $process = [System.Diagnostics.Process]::Start($si)
+        $process.WaitForExit()
     }
 
     md "cdn"
@@ -153,9 +159,10 @@ function DownloadAndDecryptCIA {
     $si.Arguments = "cdn `"$name`".cia"
     $si.UseShellExecute = $false
     $si.CreateNoWindow = $true
-    [System.Diagnostics.Process]::Start($si).WaitForExit()
+    $process = [System.Diagnostics.Process]::Start($si)
+    $process.WaitForExit()
     Remove-Item "cdn" -Recurse
-    DecryptCIA -Path $name
+    DecryptCIA -Path "$name.cia"
 }
 
 while ($true) {
