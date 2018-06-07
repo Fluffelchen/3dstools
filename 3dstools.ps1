@@ -45,11 +45,21 @@ function ConvertCIA {
 
     switch ($To) {
         0 {
-            Start-Process -FilePath ".\makerom.exe" -ArgumentList "-ciatocci `"$Path`"" -Wait
+            $si = [System.Diagnostics.ProcessStartInfo]::new()
+            $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
+            $si.Arguments = "-ciatocci `"$Path`""
+            $si.UseShellExecute = $false
+            $si.CreateNoWindow = $true
+            [System.Diagnostics.Process]::Start($si).WaitForExit()
         }
 
         1 {
-            Start-Process -FilePath ".\makerom.exe" -ArgumentList "-ciatocci `"$Path`"" -Wait
+            $si = [System.Diagnostics.ProcessStartInfo]::new()
+            $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
+            $si.Arguments = "-ciatocci `"$Path`""
+            $si.UseShellExecute = $false
+            $si.CreateNoWindow = $true
+            [System.Diagnostics.Process]::Start($si).WaitForExit()
             $old = [System.IO.Path]::GetFileNameWithoutExtension($Path) + ".cci"
             $new = [System.IO.Path]::GetFileNameWithoutExtension($Path) + ".3ds"
             Rename-Item -Path $old -NewName $new
@@ -247,16 +257,31 @@ if ($option -eq 1) {
             $dlc = " -dlc"
         }
 
-        Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$name.cia`" -i `"$ncch`:0:0`" -ignoresign -target p$dlc" -Wait
+        $si = [System.Diagnostics.ProcessStartInfo]::new()
+        $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
+        $si.Arguments = "-f cia -o `"$name.cia`" -i `"$ncch`:0:0`" -ignoresign -target p$dlc"
+        $si.UseShellExecute = $false
+        $si.CreateNoWindow = $true
+        [System.Diagnostics.Process]::Start($si).WaitForExit()
 
         if (!(Test-Path "$name.cia")) {
-            Start-Process -FilePath ".\makerom.exe" -ArgumentList "-f cia -o `"$name.cia`" -major 0 -i `"$ncch`:0:0`" -ignoresign -target p$dlc" -Wait
+            $si = [System.Diagnostics.ProcessStartInfo]::new()
+            $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
+            $si.Arguments = "-f cia -o `"$name.cia`" -major 0 -i `"$ncch`:0:0`" -ignoresign -target p$dlc"
+            $si.UseShellExecute = $false
+            $si.CreateNoWindow = $true
+            [System.Diagnostics.Process]::Start($si).WaitForExit()
         }
     }
 } elseif ($option -eq 6) {
     foreach ($cia in (Get-ChildItem -Filter "*.cia" -Recurse)) {
         $dest = Split-Path $cia -Leaf
-        Start-Process -FilePath ".\ctrtool.exe" -ArgumentList "-x `"$cia`" --contents=`"$dest`"" -Wait
+        $si = [System.Diagnostics.ProcessStartInfo]::new()
+        $si.FileName = [Environment]::CurrentDirectory + "\ctrtool.exe"
+        $si.Arguments = "-x `"$cia`" --contents=`"$dest`""
+        $si.UseShellExecute = $false
+        $si.CreateNoWindow = $true
+        [System.Diagnostics.Process]::Start($si).WaitForExit()
     }
 } elseif ($option -eq 7) {
     break
