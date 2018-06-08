@@ -129,25 +129,22 @@ function DownloadAndDecryptCIA {
     param([string]$TitleID, [string]$Version)
 
     Write-Host "Downloading..."
+
     $TitleID = $TitleID.ToUpper()
 
+    $si = [System.Diagnostics.ProcessStartInfo]::new()
+    $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
+
     if ($Version -eq "") {
-        $si = [System.Diagnostics.ProcessStartInfo]::new()
-        $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
         $si.Arguments = "-m $TitleID"
-        $si.UseShellExecute = $false
-        $si.CreateNoWindow = $true
-        $process = [System.Diagnostics.Process]::Start($si)
-        $process.WaitForExit()
     } else {
-        $si = [System.Diagnostics.ProcessStartInfo]::new()
-        $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
         $si.Arguments = "-m -V $Version $TitleID"
-        $si.UseShellExecute = $false
-        $si.CreateNoWindow = $true
-        $process = [System.Diagnostics.Process]::Start($si)
-        $process.WaitForExit()
     }
+
+    $si.UseShellExecute = $false
+    $si.CreateNoWindow = $true
+    $process = [System.Diagnostics.Process]::Start($si)
+    $process.WaitForExit()
 
     md "cdn" | Out-Null
 
