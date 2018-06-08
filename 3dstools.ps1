@@ -37,7 +37,7 @@ function GetGM9NameForCIA {
         }
     }
 
-    return "$TitleID"
+    return $TitleID
 }
 
 function ConvertCIA {
@@ -157,6 +157,12 @@ function DownloadAndDecryptCIA {
 
     if (!(Test-Path "cdn/cetk")) {
         Invoke-WebRequest -Uri "$keys_url/ticket/$($TitleID.ToLower())" -OutFile "cdn/cetk"
+
+        if (!(Test-Path "cdn/cetk")) {
+            Write-Host "Download failed (No ticket)"
+            Remove-Item "cdn" -Recurse
+            return $false
+        }
     }
 
     $name = GetGM9NameForCIA -TitleID $TitleID
@@ -195,14 +201,14 @@ if ($option -eq 1) {
         $format = [int](Read-Host "Format (0: CCI, 1: 3DS)")
         Write-Host "Converting..."
         ConvertCIA -To $format -Path $ofd.FileName
-        $path = [System.IO.Path]::GetFileNameWithoutExtension($ofd.FileName)
+        $noext = [System.IO.Path]::GetFileNameWithoutExtension($ofd.FileName)
 
         switch ($format) {
-            0 {$path += ".cci"}
-            1 {$path += ".3ds"}
+            0 { $noext += ".cci" }
+            1 { $noext += ".3ds" }
         }
 
-        if (!(Test-Path $path)) {
+        if (!(Test-Path $noext)) {
             Write-Host "makerom error"
             Pause
         }
@@ -225,7 +231,10 @@ if ($option -eq 1) {
         Pause
     } else {
         $ver = Read-Host "Version (empty for latest)"
-        DownloadAndDecryptCIA -TitleID $tid -Version $ver
+        $result = DownloadAndDecryptCIA -TitleID $tid -Version $ver
+        if (!$result) {
+            Pause
+        }
     }
 } elseif ($option -eq 4) {
     $ofd = [System.Windows.Forms.OpenFileDialog]::new()
@@ -234,15 +243,25 @@ if ($option -eq 1) {
     $ofd.ShowDialog() | Out-Null
 
     if ($ofd.FileName -ne "") {
+        $pause = $false
         foreach ($title in ((Get-Content -Path $ofd.FileName) -split '`n')) {
             Write-Host "Title: $($title.ToUpper())"
             if ($title.Split(' ').Length -eq 1) {
-                DownloadAndDecryptCIA -TitleID $title -Version ""
+                $result = DownloadAndDecryptCIA -TitleID $title -Version ""
+                if (!$result) {
+                    $pause = $true
+                }
             } else {
                 $TitleID = $title.Substring(0, $title.LastIndexOf(' '))
                 $Version = $title.Substring($title.LastIndexOf(' ') + 1)
-                DownloadAndDecryptCIA -TitleID $TitleID -Version $Version
+                $result = DownloadAndDecryptCIA -TitleID $TitleID -Version $Version
+                if (!$result) {
+                    $pause = $true
+                }
             }
+        }
+        if ($pause) {
+            Pause
         }
     }
 } elseif ($option -eq 5) {
@@ -262,22 +281,19 @@ if ($option -eq 1) {
         [System.Diagnostics.Process]::Start($si).WaitForExit()
 
         if (!(Test-Path "$name.cia")) {
-            $si = [System.Diagnostics.ProcessStartInfo]::new()
-            $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
             $si.Arguments = "-f cia -o `"$name.cia`" -major 0 -i `"$ncch`:0:0`" -ignoresign -target p$dlc"
-            $si.UseShellExecute = $false
-            $si.CreateNoWindow = $true
             [System.Diagnostics.Process]::Start($si).WaitForExit()
         }
     }
 } elseif ($option -eq 6) {
+    $si = [System.Diagnostics.ProcessStartInfo]::new()
+    $si.FileName = [Environment]::CurrentDirectory + "\ctrtool.exe"
+    $si.UseShellExecute = $false
+    $si.CreateNoWindow = $true
+
     foreach ($cia in (Get-ChildItem -Filter "*.cia" -Recurse)) {
         $dest = Split-Path $cia -Leaf
-        $si = [System.Diagnostics.ProcessStartInfo]::new()
-        $si.FileName = [Environment]::CurrentDirectory + "\ctrtool.exe"
         $si.Arguments = "-x `"$cia`" --contents=`"$dest`""
-        $si.UseShellExecute = $false
-        $si.CreateNoWindow = $true
         [System.Diagnostics.Process]::Start($si).WaitForExit()
     }
 } elseif ($option -eq 7) {
