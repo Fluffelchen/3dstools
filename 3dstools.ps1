@@ -46,23 +46,11 @@ function Convert3DS {
     switch ($To) {
         0 {
             $si = [System.Diagnostics.ProcessStartInfo]::new()
-            $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
-            $si.Arguments = "-ccitocia `"$Path`" -ignoresign -target p"
+            $si.FileName = [Environment]::CurrentDirectory + "\3dsconv.exe"
+            $si.Arguments = "`"$Path`""
             $si.UseShellExecute = $false
             $si.CreateNoWindow = $true
             [System.Diagnostics.Process]::Start($si).WaitForExit()
-        }
-
-        1 {
-            $si = [System.Diagnostics.ProcessStartInfo]::new()
-            $si.FileName = [Environment]::CurrentDirectory + "\makerom.exe"
-            $si.Arguments = "-ccitocia `"$Path`" -ignoresign -target p"
-            $si.UseShellExecute = $false
-            $si.CreateNoWindow = $true
-            [System.Diagnostics.Process]::Start($si).WaitForExit()
-            $old = [System.IO.Path]::GetFileNameWithoutExtension($Path) + ".cci"
-            $new = [System.IO.Path]::GetFileNameWithoutExtension($Path) + ".3ds"
-            Rename-Item -Path $old -NewName $new
         }
     }
 }
@@ -302,7 +290,7 @@ if ($option -eq 1) {
         }
 
         if (!(Test-Path $file)) {
-            Write-Host "makerom error"
+            Write-Host "A unknown u"
             Pause
         }
     }
