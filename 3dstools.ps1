@@ -165,8 +165,7 @@ function DecryptCIA {
     $si.Arguments = "-f cia -o `"$noext (Decrypted).cia`" $files_str-ignoresign -target p$dlc"
     $si.UseShellExecute = $false
     $si.CreateNoWindow = $true
-    $process = [System.Diagnostics.Process]::Start($si)
-    $process.WaitForExit()
+    [System.Diagnostics.Process]::Start($si).WaitForExit()
 
     if (!(Test-Path "$noext (Decrypted).cia")) {
         $si = [System.Diagnostics.ProcessStartInfo]::new()
@@ -174,8 +173,7 @@ function DecryptCIA {
         $si.Arguments = "-f cia -o `"$noext (Decrypted).cia`" $files_str-ignoresign -target p$dlc"
         $si.UseShellExecute = $false
         $si.CreateNoWindow = $true
-        $process = [System.Diagnostics.Process]::Start($si)
-        $process.WaitForExit()
+        [System.Diagnostics.Process]::Start($si).WaitForExit()
     }
 
     foreach ($file in $files) {
@@ -199,8 +197,7 @@ function DownloadAndDecryptCIA {
 
     $si.UseShellExecute = $false
     $si.CreateNoWindow = $true
-    $process = [System.Diagnostics.Process]::Start($si)
-    $process.WaitForExit()
+    [System.Diagnostics.Process]::Start($si).WaitForExit()
 
     md "cdn" | Out-Null
 
@@ -227,8 +224,7 @@ function DownloadAndDecryptCIA {
     $si.Arguments = "cdn `"$name`".cia"
     $si.UseShellExecute = $false
     $si.CreateNoWindow = $true
-    $process = [System.Diagnostics.Process]::Start($si)
-    $process.WaitForExit()
+    [System.Diagnostics.Process]::Start($si).WaitForExit()
     Remove-Item "cdn" -Recurse
     Write-Host "Decrypting..."
     DecryptCIA -Path "$name.cia"
