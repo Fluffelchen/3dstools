@@ -188,8 +188,6 @@ function DownloadAndDecryptCIA {
 
     Write-Host "Downloading..."
 
-    $TitleID = $TitleID.ToUpper()
-
     $si = [System.Diagnostics.ProcessStartInfo]::new()
     $si.FileName = [Environment]::CurrentDirectory + "\nustool.exe"
 
@@ -207,11 +205,11 @@ function DownloadAndDecryptCIA {
     md "cdn" | Out-Null
 
     foreach ($file In (Get-ChildItem -Path "$TitleID" -Recurse -File)) {
-        $dir = Get-ChildItem -Path "$TitleID" -Directory
-        move "$TitleID/$dir/$file" "cdn/$file"
+        $dir = Get-ChildItem -Path "$($TitleID.ToLower())" -Directory
+        move "$($TitleID.ToLower())/$dir/$file" "cdn/$file"
     }
 
-    Remove-Item "$TitleID" -Recurse
+    Remove-Item "$($TitleID.ToLower())" -Recurse
 
     if (!(Test-Path "cdn/cetk")) {
         Invoke-WebRequest -Uri "$keys_url/ticket/$($TitleID.ToLower())" -OutFile "cdn/cetk"
@@ -312,13 +310,21 @@ if ($option -eq 1) {
     }
 } elseif ($option -eq 3) {
     $tid = Read-Host "Title ID"
+    $found = $false
 
-    if ($tid.Length -ne 16) {
-        Write-Host "Invalid title ID"
+    foreach ($title in $json) {
+        if ($title.titleID -eq $tid.ToLower()) {
+            $found = $true
+            break
+        }
+    }
+
+    if (!$found) {
+        Write-Host "Title missing in title keys database"
         Pause
     } else {
         $ver = Read-Host "Version (empty for latest)"
-        $result = DownloadAndDecryptCIA -TitleID $tid -Version $ver
+        $result = DownloadAndDecryptCIA -TitleID $tid.ToUpper() -Version $ver
         if (!$result) {
             Pause
         }
@@ -332,18 +338,30 @@ if ($option -eq 1) {
     if ($ofd.FileName -ne "") {
         $pause = $false
         foreach ($title in ((Get-Content -Path $ofd.FileName) -split '`n')) {
-            Write-Host "Title: $($title.ToUpper())"
-            if ($title.Split(' ').Length -eq 1) {
-                $result = DownloadAndDecryptCIA -TitleID $title -Version ""
-                if (!$result) {
-                    $pause = $true
+            if ($title.Split(' ').Length -ge 1) {
+                $TitleID = $title.Split(' ')[0].ToUpper()
+                Write-Host "Title: $TitleID"
+                $found = $false
+
+                foreach ($t in $json) {
+                    if ($t.titleID -eq $TitleID.ToLower()) {
+                        $found = $true
+                        break
+                    }
                 }
-            } else {
-                $TitleID = $title.Substring(0, $title.LastIndexOf(' '))
-                $Version = $title.Substring($title.LastIndexOf(' ') + 1)
-                $result = DownloadAndDecryptCIA -TitleID $TitleID -Version $Version
-                if (!$result) {
+
+                if (!$found) {
+                    Write-Host "Title missing in title keys database"
                     $pause = $true
+                } else {
+                    $Version = if ($title.Split(' ').Length -ge 2) {$title.Split(' ')[1]} else {""}
+                    if ($Version -ne "") {
+                        Write-Host "Version: $Version"
+                    }
+                    $result = DownloadAndDecryptCIA -TitleID $TitleID -Version $Version
+                    if (!$result) {
+                        $pause = $true
+                    }
                 }
             }
         }
