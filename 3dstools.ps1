@@ -100,7 +100,6 @@ function Decrypt3DS {
         $info = [System.IO.FileInfo]::new($file)
         $data = [System.IO.File]::ReadAllBytes($file)
         $data[0x188 + 3] = 0
-        $data[0x188 + 7] = 4
         [System.IO.File]::WriteAllBytes($file, $data)
     }
 
