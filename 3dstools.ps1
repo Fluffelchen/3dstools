@@ -242,6 +242,7 @@ Write-Host @"
 (7) Exit
 "@
 $option = [int](Read-Host "Select a option")
+Clear-Host
 if ($option -eq 1) {
     $ofd = [System.Windows.Forms.OpenFileDialog]::new()
     $ofd.InitialDirectory = Convert-Path .
@@ -331,7 +332,7 @@ if ($option -eq 1) {
 
     if ($ofd.FileName -ne "") {
         $pause = $false
-        foreach ($title in ((Get-Content -Path $ofd.FileName) -split '`n')) {
+        foreach ($title in (Get-Content -Path $ofd.FileName).Split("`n")) {
             if ($title.Split(' ').Length -ge 1) {
                 $TitleID = $title.Split(' ')[0].ToUpper()
                 Write-Host "Title: $TitleID"
