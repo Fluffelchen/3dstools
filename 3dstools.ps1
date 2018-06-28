@@ -1,7 +1,7 @@
 Add-Type -AssemblyName System.Windows.Forms
 
 $keys_url = "http://3ds.titlekeys.gq"
-$json = Invoke-WebRequest -Uri "$keys_url/json_enc" | ConvertFrom-Json
+$json = Invoke-WebRequest -Uri "$keys_url/json_enc" -UseBasicParsing | ConvertFrom-Json
 
 function GetGM9NameForCIA {
     param([string]$TitleID)
