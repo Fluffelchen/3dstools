@@ -235,8 +235,8 @@ Write-Host @"
 3dstools
 (1) Convert (Decrypted Files Only)
 (2) Decrypt
-(3) Download & Decrypt CIA
-(4) Download & Decrypt CIA list
+(3) Download & Decrypt (To CIA)
+(4) Download & Decrypt (To CIA) (list)
 (5) Convert all NCCHs to CIAs
 (6) Extract all CIAs contents
 (7) Exit
