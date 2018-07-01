@@ -1,2 +1,2 @@
 # 3dstools
-3DS tools
+Multitool 3DS script
