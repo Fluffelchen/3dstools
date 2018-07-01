@@ -283,7 +283,7 @@ if ($option -eq 1) {
         }
 
         if (!(Test-Path $file)) {
-            Write-Host "A unknown u"
+            Write-Host "A unknown error ocurred"
             Pause
         }
     }
