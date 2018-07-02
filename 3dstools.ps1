@@ -97,10 +97,16 @@ function Decrypt3DS {
     $files = Get-ChildItem -Filter "*.ncch"
 
     foreach ($file in $files) {
-        $info = [System.IO.FileInfo]::new($file)
-        $data = [System.IO.File]::ReadAllBytes($file)
-        $data[0x188 + 2] = 0
-        [System.IO.File]::WriteAllBytes($file, $data)
+        try {
+            $data = [System.IO.File]::ReadAllBytes($file.FullName)
+            $data[0x188 + 2] = 0
+            [System.IO.File]::WriteAllBytes($file.FullName, $data)
+        } catch {
+            $parts = $file.Name.Split('.')
+            $id = $parts[$parts.Length - 2]
+            Write-Host "NCCH $id could not be decrypted completely."
+            Pause
+        }
     }
 
     $files_str = ""
@@ -137,15 +143,18 @@ function DecryptCIA {
     $process.StandardInput.WriteLine()
     $process.WaitForExit()
     $files = Get-ChildItem -Filter "*.ncch"
-    $dlc = ""
+    $dlc = if ($Path.Contains("DLC") -or $Path.Contains("0004008c") -or $Path.Contains("0004008C")) {" -dlc"} else {""}
 
     foreach ($file in $files) {
-        $info = [System.IO.FileInfo]::new($file)
-        $data = [System.IO.File]::ReadAllBytes($file)
-        $data[0x188 + 2] = 0
-        [System.IO.File]::WriteAllBytes($file, $data)
-        if ($info.Name.Contains("DLC") -or $info.Name.Contains("0004008c") -or $info.Name.Contains("0004008C")) {
-            $dlc = " -dlc"
+        try {
+            $data = [System.IO.File]::ReadAllBytes($file.FullName)
+            $data[0x188 + 2] = 0
+            [System.IO.File]::WriteAllBytes($file.FullName, $data)
+        } catch {
+            $parts = $file.Name.Split('.')
+            $id = $parts[$parts.Length - 2]
+            Write-Host "NCCH $id could not be decrypted completely."
+            Pause
         }
     }
 
